@@ -288,6 +288,7 @@ namespace my_Editor {
 
 #pragma endregion
 	private: System::Void data_menu_Click(System::Object^ sender, System::EventArgs^ e) {
+		//verbindung Test
 		Form2^ second_Form = gcnew Form2;
 		second_Form->Show();
 
