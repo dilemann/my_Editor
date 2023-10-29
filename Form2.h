@@ -125,7 +125,7 @@ namespace my_Editor {
 
 		}
 
-		bool ignoreCase; //Initialisierung des Textregister-Flags
+		/*bool ignoreCase;*/ //Initialisierung des Textregister-Flags
 
 
 		void HighlightMatches(RichTextBox^ textBox, String^ searchText, bool ignoreCase)
@@ -163,22 +163,15 @@ namespace my_Editor {
 		
 	
 #pragma endregion
-	
-	private: System::Void search_btn_Click(System::Object^ sender, System::EventArgs^ e) {
-		if (my_textbox->Text->Length != 0) {
-			if (checkBox->Checked) {
-				ignoreCase = false;
-				HighlightMatches(my_textbox, search_input->Text, ignoreCase = false);
-			}
-			else {
-				ignoreCase = true;
-				HighlightMatches(my_textbox, search_input->Text, ignoreCase);
-			}
-		}
-		else {
-			MessageBox::Show("Das Textfeld ist leer!");
-			search_input->Text = "";
-		} 
-	}
+private: System::Void search_btn_Click(System::Object^ sender, System::EventArgs^ e) {
+    if (my_textbox->Text->Length == 0 || search_input->Text->Length == 0) {
+        MessageBox::Show("Das Textfeld ist leer!");
+        search_input->Text = "";
+        return;
+    }
+
+    bool ignoreCase = !checkBox->Checked;
+    HighlightMatches(my_textbox, search_input->Text, ignoreCase);
+}
 };
 }

@@ -16,6 +16,7 @@ namespace my_Editor {
 	public ref class Form1 : public System::Windows::Forms::Form
 	{
 	public:
+		//
 		TextBox^ my_textbox;
 		Form1(void)
 		{
@@ -207,7 +208,7 @@ namespace my_Editor {
 			// search_search_menu
 			// 
 			this->search_search_menu->Name = L"search_search_menu";
-			this->search_search_menu->Size = System::Drawing::Size(224, 26);
+			this->search_search_menu->Size = System::Drawing::Size(139, 26);
 			this->search_search_menu->Text = L"Suchen";
 			this->search_search_menu->Click += gcnew System::EventHandler(this, &Form1::search_search_menu_Click);
 			// 
@@ -221,7 +222,7 @@ namespace my_Editor {
 			// info_info_menu
 			// 
 			this->info_info_menu->Name = L"info_info_menu";
-			this->info_info_menu->Size = System::Drawing::Size(224, 26);
+			this->info_info_menu->Size = System::Drawing::Size(118, 26);
 			this->info_info_menu->Text = L"Info";
 			this->info_info_menu->Click += gcnew System::EventHandler(this, &Form1::info_info_menu_Click);
 			// 
@@ -258,7 +259,8 @@ namespace my_Editor {
 
 		}
 
-		String^ saveNewFile() {
+		// 
+	private: String^ saveNewFile() {
 
 			SaveFileDialog^ saveFileDialog = gcnew SaveFileDialog();
 			saveFileDialog->Filter = " text files (*.txt*)|*.txt*|all files (*.*)|*.*";
@@ -282,7 +284,7 @@ namespace my_Editor {
 		}
 
 
-		void saveFile(String^ filePath, String^ textToSave) {
+	private: void saveFile(String^ filePath, String^ textToSave) {
 			try {
 				System::IO::File::WriteAllText(filePath, textToSave);
 				MessageBox::Show("Datei wurde überschrieben ");
@@ -292,7 +294,7 @@ namespace my_Editor {
 			}
 		}
 
-		String^ openFileWindow() {
+	private: String^ openFile() {
 
 			OpenFileDialog^ openfileDialog = gcnew OpenFileDialog();
 			openfileDialog->Filter = " text files (*.txt*)|*.txt*|all files (*.*)|*.*";
@@ -306,7 +308,7 @@ namespace my_Editor {
 			}
 		}
 
-		void listenFile(String^ filePath) {
+	private: void listenFile(String^ filePath) {
 
 			if (filePath != nullptr) {
 				try {
@@ -317,145 +319,120 @@ namespace my_Editor {
 					this->textBox->Text = fileContent;
 				}
 				catch (Exception^ ex) {
-					MessageBox::Show("Error when uploading a file: " + ex->Message);
+					MessageBox::Show("Fehler beim Upload einer Datei: " + ex->Message);
 				}
 			}
 		}
 
+	private: void formClosing() {
+		if (hasUnsavedChanges && this->textBox->Text->Length != 0) {
+			System::Windows::Forms::DialogResult result = MessageBox::Show("vor dem Schließen zu speichern?", "Confirm", MessageBoxButtons::YesNoCancel, MessageBoxIcon::Question);
+			if (result == System::Windows::Forms::DialogResult::Yes) {
+				if (selectedFilePath != nullptr) {
+					saveFile(selectedFilePath, textBox->Text);
+				}
+				else {
+					saveNewFile();
+				}
+			}
+			else if (result == System::Windows::Forms::DialogResult::Cancel) {
+				return; // ????????????? ???????? ?????
+			}
+		}
+	}
 
 
 		bool hasUnsavedChanges;
-		bool buttonWasClicked;
 		String^ selectedFilePath;
 
 
 
 #pragma endregion
 	private: System::Void data_menu_Click(System::Object^ sender, System::EventArgs^ e) {
-		if (this->textBox->Text->Length != 0) {
+		bool isTextNoEmpty = this->textBox->Text->Length != 0;
 
-			this->save_data_menu->Enabled = true;
-			this->saveAs_data_menu->Enabled = true;
-		}
-		else {
-			this->save_data_menu->Enabled = false;
-			this->saveAs_data_menu->Enabled = false;
-		}
+		this->save_data_menu->Enabled = isTextNoEmpty;
+		this->saveAs_data_menu->Enabled = isTextNoEmpty;
 
 	}
 	
 	private: System::Void open_data_menu_Click(System::Object^ sender, System::EventArgs^ e) {
-		String^ filePath = openFileWindow();
+		String^ filePath = openFile();
 		listenFile(filePath);
 	}
+
 private: System::Void allEdit_edit_menu_Click(System::Object^ sender, System::EventArgs^ e) {
 	
-	if (this->textBox->Text->Length != 0) {
-		allEdit_edit_menu->Enabled = true;
-		this->textBox->SelectAll();
-	} else allEdit_edit_menu->Enabled = false;
+	allEdit_edit_menu->Enabled = this->textBox->Text->Length != 0;
+		if(allEdit_edit_menu->Enabled) this->textBox->SelectAll();
+	
 }
 private: System::Void save_data_menu_Click(System::Object^ sender, System::EventArgs^ e) {
 	if (this->textBox->Text->Length != 0) {
-		MessageBox::Show("Die Datei wurde noch nicht erstellt. File Erstellung");
-
-		saveNewFile();
-	} 
-	
-	
+		if (selectedFilePath != nullptr) saveFile(selectedFilePath, textBox->Text);
+		else {
+			MessageBox::Show("Die Datei wurde noch nicht erstellt. File Erstellung");
+			saveNewFile();
+		} 
+	}
 }
+
 private: System::Void saveAs_data_menu_Click(System::Object^ sender, System::EventArgs^ e) {
-	if (this->textBox->Text->Length != 0) {
-		if (selectedFilePath != nullptr) {
-					saveFile(selectedFilePath, textBox->Text);
-				}
-				else saveNewFile(); 
-	}
+	if (this->textBox->Text->Length != 0) saveNewFile();
+	else saveFile(selectedFilePath, textBox->Text);
 }
+
 private: System::Void exit_data_menu_Click(System::Object^ sender, System::EventArgs^ e) {
-	buttonWasClicked = true;
-		if (hasUnsavedChanges && this->textBox->Text->Length != 0) {
-			System::Windows::Forms::DialogResult result = MessageBox::Show("vor dem Schließen zu speichern?", "Confirm", MessageBoxButtons::YesNoCancel, MessageBoxIcon::Question);
-			if (result == System::Windows::Forms::DialogResult::No) {
-				Application::Exit();
-			}	
-			else if (result == System::Windows::Forms::DialogResult::Yes) {
-				if (selectedFilePath != nullptr) {
-					saveFile(selectedFilePath, textBox->Text);
-				}
-				else saveNewFile(); 
-
-			Application::Exit();
-			} 
-		}
-		else Application::Exit();
-
+	Application::Exit();
 }
+
+
 private: System::Void edit_menu_Click(System::Object^ sender, System::EventArgs^ e) {
-	if (this->textBox->SelectionLength > 0) {
-		this->copy_edit_menu->Enabled = true;
-		this->cut_edit_menu->Enabled = true;
-		this->allEdit_edit_menu->Enabled = true;
-	}
-	else {
-		this->cut_edit_menu->Enabled = false;
-		this->copy_edit_menu->Enabled = false;
-		this->allEdit_edit_menu->Enabled = false;
-	}
 
-	if (this->textBox->SelectionLength == this->textBox->Text->Length) {
-		this->allEdit_edit_menu->Enabled = false;
-	}
-	else this->allEdit_edit_menu->Enabled = true;
+	bool textSelected = this->textBox->SelectionLength > 0;
+	bool allTextSelected = this->textBox->SelectionLength == this->textBox->Text->Length;
+
+	this->copy_edit_menu->Enabled = textSelected;
+	this->cut_edit_menu->Enabled = textSelected;
+	this->allEdit_edit_menu->Enabled = !allTextSelected;
 
 }
+
 private: System::Void copy_edit_menu_Click(System::Object^ sender, System::EventArgs^ e) {
 	if (this->textBox->SelectionLength > 0) {
-		String^ selectedText = this->textBox->SelectedText;
 		this->textBox->Copy();
 		this->add_edit_menu->Enabled = true;
 	}
 }
+
 private: System::Void cut_edit_menu_Click(System::Object^ sender, System::EventArgs^ e) {
 	if (this->textBox->SelectionLength > 0) {
-		String^ selectedText = this->textBox->SelectedText;
 		this->textBox->Cut();
 		this->add_edit_menu->Enabled = true;
 	}
 }
+
 private: System::Void add_edit_menu_Click(System::Object^ sender, System::EventArgs^ e) {
 	if (Clipboard::ContainsText()) this->textBox->Paste();
 }
 
 private: System::Void textBox_TextChanged(System::Object^ sender, System::EventArgs^ e) {
-	if (this->textBox->Text->Length != 0) {
-		this->copy_edit_menu->Enabled = true;
-		hasUnsavedChanges = true;
-	}
-	else this->copy_edit_menu->Enabled = false;
+	bool textNotEmpty = this->textBox->Text->Length > 0;
+	this->copy_edit_menu->Enabled = textNotEmpty;
+	hasUnsavedChanges = textNotEmpty;
+
 }
 
 
 private: System::Void Form1_FormClosing(System::Object^ sender, System::Windows::Forms::FormClosingEventArgs^ e) {
-	if (hasUnsavedChanges && !buttonWasClicked && this->textBox->Text->Length != 0) {
-		System::Windows::Forms::DialogResult result = MessageBox::Show("vor dem Schließen zu speichern?", "Confirm", MessageBoxButtons::YesNoCancel, MessageBoxIcon::Question);
-		if (result == System::Windows::Forms::DialogResult::No) {
-			e->Cancel = false;
-		}
-		else if (result == System::Windows::Forms::DialogResult::Yes) {
-			if (selectedFilePath != nullptr) {
-				saveFile(selectedFilePath, textBox->Text);
-			}
-			else saveNewFile();
-		}
-		else if (result == System::Windows::Forms::DialogResult::Cancel)e->Cancel = true;
-	}	
+	formClosing();
 }
 
 private: System::Void search_search_menu_Click(System::Object^ sender, System::EventArgs^ e) {
 	Form2^ second_Form = gcnew Form2(this->textBox);
 	second_Form->Show();
 }
+
 private: System::Void info_info_menu_Click(System::Object^ sender, System::EventArgs^ e) {
 	MessageBox::Show("Version 2.0");
 }
