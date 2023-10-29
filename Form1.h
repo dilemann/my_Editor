@@ -16,8 +16,18 @@ namespace my_Editor {
 	public ref class Form1 : public System::Windows::Forms::Form
 	{
 	public:
+		TextBox^ my_textbox;
 		Form1(void)
 		{
+			InitializeComponent();
+			//
+			//TODO: Add the constructor code here
+			//
+		}
+
+		Form1(TextBox^ textbox)
+		{
+			my_textbox = textbox;
 			InitializeComponent();
 			//
 			//TODO: Add the constructor code here
@@ -50,7 +60,11 @@ namespace my_Editor {
 	private: System::Windows::Forms::ToolStripMenuItem^ add_edit_menu;
 	private: System::Windows::Forms::ToolStripMenuItem^ search_search_menu;
 	private: System::Windows::Forms::ToolStripMenuItem^ info_info_menu;
-	private: System::Windows::Forms::TextBox^ textBox;
+	private: System::Windows::Forms::RichTextBox^ textBox;
+
+
+
+
 
 
 
@@ -87,7 +101,7 @@ namespace my_Editor {
 			this->search_search_menu = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->info_menu = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->info_info_menu = (gcnew System::Windows::Forms::ToolStripMenuItem());
-			this->textBox = (gcnew System::Windows::Forms::TextBox());
+			this->textBox = (gcnew System::Windows::Forms::RichTextBox());
 			this->menuStrip1->SuspendLayout();
 			this->SuspendLayout();
 			// 
@@ -101,7 +115,7 @@ namespace my_Editor {
 			});
 			this->menuStrip1->Location = System::Drawing::Point(0, 0);
 			this->menuStrip1->Name = L"menuStrip1";
-			this->menuStrip1->Size = System::Drawing::Size(305, 28);
+			this->menuStrip1->Size = System::Drawing::Size(419, 28);
 			this->menuStrip1->TabIndex = 0;
 			this->menuStrip1->Text = L"menuStrip1";
 			// 
@@ -112,7 +126,7 @@ namespace my_Editor {
 					this->save_data_menu, this->saveAs_data_menu, this->exit_data_menu
 			});
 			this->data_menu->Name = L"data_menu";
-			this->data_menu->Size = System::Drawing::Size(59, 24);
+			this->data_menu->Size = System::Drawing::Size(59, 26);
 			this->data_menu->Text = L"Datei";
 			this->data_menu->Click += gcnew System::EventHandler(this, &Form1::data_menu_Click);
 			// 
@@ -154,8 +168,9 @@ namespace my_Editor {
 			// allEdit_edit_menu
 			// 
 			this->allEdit_edit_menu->Name = L"allEdit_edit_menu";
-			this->allEdit_edit_menu->Size = System::Drawing::Size(194, 26);
+			this->allEdit_edit_menu->Size = System::Drawing::Size(224, 26);
 			this->allEdit_edit_menu->Text = L"Alles markieren";
+			this->allEdit_edit_menu->Click += gcnew System::EventHandler(this, &Form1::allEdit_edit_menu_Click);
 			// 
 			// copy_edit_menu
 			// 
@@ -179,7 +194,7 @@ namespace my_Editor {
 			// 
 			this->exstras_menu->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(1) { this->search_search_menu });
 			this->exstras_menu->Name = L"exstras_menu";
-			this->exstras_menu->Size = System::Drawing::Size(68, 24);
+			this->exstras_menu->Size = System::Drawing::Size(68, 26);
 			this->exstras_menu->Text = L"Exstras";
 			// 
 			// search_search_menu
@@ -192,7 +207,7 @@ namespace my_Editor {
 			// 
 			this->info_menu->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(1) { this->info_info_menu });
 			this->info_menu->Name = L"info_menu";
-			this->info_menu->Size = System::Drawing::Size(30, 24);
+			this->info_menu->Size = System::Drawing::Size(30, 26);
 			this->info_menu->Text = L"\?";
 			// 
 			// info_info_menu
@@ -203,20 +218,23 @@ namespace my_Editor {
 			// 
 			// textBox
 			// 
-			this->textBox->BackColor = System::Drawing::SystemColors::ControlLightLight;
+			this->textBox->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((((System::Windows::Forms::AnchorStyles::Top | System::Windows::Forms::AnchorStyles::Bottom)
+				| System::Windows::Forms::AnchorStyles::Left)
+				| System::Windows::Forms::AnchorStyles::Right));
 			this->textBox->BorderStyle = System::Windows::Forms::BorderStyle::None;
-			this->textBox->Location = System::Drawing::Point(12, 42);
-			this->textBox->Multiline = true;
+			this->textBox->Location = System::Drawing::Point(10, 36);
+			this->textBox->Margin = System::Windows::Forms::Padding(11, 100, 4, 4);
 			this->textBox->Name = L"textBox";
-			this->textBox->Size = System::Drawing::Size(281, 199);
+			this->textBox->Size = System::Drawing::Size(396, 378);
 			this->textBox->TabIndex = 1;
+			this->textBox->Text = L"";
 			// 
 			// Form1
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(8, 16);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 			this->BackColor = System::Drawing::SystemColors::ControlLightLight;
-			this->ClientSize = System::Drawing::Size(305, 253);
+			this->ClientSize = System::Drawing::Size(419, 422);
 			this->Controls->Add(this->textBox);
 			this->Controls->Add(this->menuStrip1);
 			this->MainMenuStrip = this->menuStrip1;
@@ -289,7 +307,7 @@ namespace my_Editor {
 #pragma endregion
 	private: System::Void data_menu_Click(System::Object^ sender, System::EventArgs^ e) {
 		//verbindung Test
-		Form2^ second_Form = gcnew Form2;
+		Form2^ second_Form = gcnew Form2(this->textBox);
 		second_Form->Show();
 
 	}
@@ -297,5 +315,9 @@ namespace my_Editor {
 	private: System::Void open_data_menu_Click(System::Object^ sender, System::EventArgs^ e) {
 
 	}
+private: System::Void allEdit_edit_menu_Click(System::Object^ sender, System::EventArgs^ e) {
+	textBox->Select(0, textBox->Text->Length); 
+	textBox->Focus();
+}
 };
 }

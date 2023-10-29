@@ -1,5 +1,7 @@
 #pragma once
 //#include "Form1.h"
+#include <list> 
+
 namespace my_Editor {
 
 	using namespace System;
@@ -8,6 +10,7 @@ namespace my_Editor {
 	using namespace System::Windows::Forms;
 	using namespace System::Data;
 	using namespace System::Drawing;
+	using namespace System::Collections::Generic;
 
 	/// <summary>
 	/// Zusammenfassung für Form2
@@ -15,13 +18,21 @@ namespace my_Editor {
 	public ref class Form2 : public System::Windows::Forms::Form
 	{
 	public:
-		String^ search_text;
-		Form^ obj;
+		RichTextBox^ my_textbox;
 		Form2(void)
 		{
 			InitializeComponent();
 			//
-			//TODO: Konstruktorcode hier hinzufügen.
+			//TODO: Add the constructor code here
+			//
+		}
+
+		Form2(RichTextBox^ textbox)
+		{
+			my_textbox = textbox;
+			InitializeComponent();
+			//
+			//TODO: Add the constructor code here
 			//
 		}
 
@@ -73,7 +84,6 @@ namespace my_Editor {
 			this->search_input->Name = L"search_input";
 			this->search_input->Size = System::Drawing::Size(269, 22);
 			this->search_input->TabIndex = 0;
-			this->search_input->TextChanged += gcnew System::EventHandler(this, &Form2::search_input_TextChanged);
 			// 
 			// checkBox
 			// 
@@ -114,12 +124,57 @@ namespace my_Editor {
 			this->PerformLayout();
 
 		}
+
+		bool ignoreCase; //Initialisierung des Textregister-Flags
+
+
+		void HighlightMatches(RichTextBox^ textBox, String^ searchText, bool ignoreCase)
+		{
+			// Nullstellung der Farbbezeichnung der gesuchten Zeichen
+			textBox->SelectionStart = 0;
+			textBox->SelectionLength = textBox->Text->Length;
+			textBox->SelectionBackColor = textBox->BackColor;
+
+			String^ text;
+			if(!ignoreCase) text = textBox->Text;
+			else {
+				text = textBox->Text->ToLower(); // Quelltext in Kleinbuchstaben umwandeln
+				searchText = searchText->ToLower(); // Den gesuchten Text in Kleinbuchstaben umwandeln
+			}
+			int startIndex = 0;
+			bool matchesFound = false; // Flagge für die Erkennung von Übereinstimmungen
+
+			while (startIndex < text->Length)
+			{
+				startIndex = text->IndexOf(searchText, startIndex);
+
+				if (startIndex == -1) break;
+			
+				textBox->Select(startIndex, searchText->Length);
+				textBox->SelectionBackColor = System::Drawing::Color::Yellow;
+
+				startIndex += searchText->Length;
+				matchesFound = true;  // Flagge setzen, wenn mindestens eine Übereinstimmung gefunden wird
+			}
+
+			// Wenn keine Übereinstimmung gefunden wird, wird eine MessageBox angezeigt
+			if (!matchesFound) MessageBox::Show("keine Übereinstimmungen gefunden");
+		}
+		
+	
 #pragma endregion
-	private: System::Void search_input_TextChanged(System::Object^ sender, System::EventArgs^ e) {
-
-	}
+	
 	private: System::Void search_btn_Click(System::Object^ sender, System::EventArgs^ e) {
-
+		if (my_textbox->Text->Length != 0) { 
+			if (checkBox->Checked) {
+				ignoreCase = false;
+				HighlightMatches(my_textbox, search_input->Text, ignoreCase = false);
+			}
+			else {
+				ignoreCase = true;
+				HighlightMatches(my_textbox, search_input->Text, ignoreCase);
+			} 
 	}
-	};
+	}
+};
 }
