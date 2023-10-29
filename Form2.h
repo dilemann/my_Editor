@@ -165,7 +165,7 @@ namespace my_Editor {
 #pragma endregion
 	
 	private: System::Void search_btn_Click(System::Object^ sender, System::EventArgs^ e) {
-		if (my_textbox->Text->Length != 0) { 
+		if (my_textbox->Text->Length != 0) {
 			if (checkBox->Checked) {
 				ignoreCase = false;
 				HighlightMatches(my_textbox, search_input->Text, ignoreCase = false);
@@ -173,8 +173,12 @@ namespace my_Editor {
 			else {
 				ignoreCase = true;
 				HighlightMatches(my_textbox, search_input->Text, ignoreCase);
-			} 
-	}
+			}
+		}
+		else {
+			MessageBox::Show("Das Textfeld ist leer!");
+			search_input->Text = "";
+		} 
 	}
 };
 }
