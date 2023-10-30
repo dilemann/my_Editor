@@ -17,7 +17,6 @@ namespace my_Editor {
 	{
 	public:
 		//
-		TextBox^ my_textbox;
 		Form1(void)
 		{
 			InitializeComponent();
@@ -26,14 +25,6 @@ namespace my_Editor {
 			//
 		}
 
-		Form1(TextBox^ textbox)
-		{
-			my_textbox = textbox;
-			InitializeComponent();
-			//
-			//TODO: Add the constructor code here
-			//
-		}
 
 	protected:
 		/// <summary>
@@ -63,9 +54,10 @@ namespace my_Editor {
 	private: System::Windows::Forms::ToolStripMenuItem^ info_info_menu;
 	private: System::Windows::Forms::RichTextBox^ textBox;
 
-
-
-
+	// wird vor dem Speichern der Datei überprüft, ob es Änderungen gibt
+	private: bool hasUnsavedChanges;
+	// Initialisierung einer Variablen "selectedFilePath" zur Überprüfung, ob die Datei erstellt wurde
+	private: String^ selectedFilePath;
 
 
 
@@ -258,183 +250,202 @@ namespace my_Editor {
 			this->PerformLayout();
 
 		}
-
-		// 
-	private: String^ saveNewFile() {
-
-			SaveFileDialog^ saveFileDialog = gcnew SaveFileDialog();
-			saveFileDialog->Filter = " text files (*.txt*)|*.txt*|all files (*.*)|*.*";
+//-------------------------My--Methoden--------------------------------------------------------------------------------------
+		// Verfahre zum Speichern einer neuen Datei
+	private: void saveNewFile() {
+		// wird  überprüft, ob es Änderungen im Text gibt
+		if (hasUnsavedChanges) {
+			SaveFileDialog^ saveFileDialog = gcnew SaveFileDialog();	// Speichern-Dialogfeld
+			saveFileDialog->Filter = " text files (*.txt*)|*.txt*|all files (*.*)|*.*"; // Formatfilter
 			saveFileDialog->Title = "save as";
 
+			//wenn die Dialogbox auf OK geklickt wird
 			if (saveFileDialog->ShowDialog() == System::Windows::Forms::DialogResult::OK) {
-				String^ selectedFilePath = saveFileDialog->FileName;
-				String^ textToSave = textBox->Text;
+				String^ textToSave = textBox->Text; // wird unser gesamter Text der Variablen "textToSave" zugewiesen.
+				// weist den absoluten Pfad der gespeicherten Datei der Variablen
+				selectedFilePath = saveFileDialog->FileName; 
+					try { // Versuch, Text in eine bestimmte Datei zu schreiben
+						System::IO::File::WriteAllText(selectedFilePath, textToSave);
+						MessageBox::Show("The file is saved at: " + selectedFilePath);
+						// wenn der Datensatz erfolgreich ist, setzen Sie das Flag auf false, was bedeutet, dass es keine Änderungen für den Datensatz gibt
+						hasUnsavedChanges = false; 
 
-				try {
-					System::IO::File::WriteAllText(selectedFilePath, textToSave);
-					MessageBox::Show("The file is saved at: " + selectedFilePath);
-					selectedFilePath = saveFileDialog->FileName;
-				}
-				catch (System::Exception^ ex) {
-					MessageBox::Show("Error while saving the file: " + ex->Message);
-				}
-			} 
-			return nullptr;
+					}
+					catch (System::Exception^ ex) {
+						MessageBox::Show("Error while saving the file: " + ex->Message); // sonst Fehler
+					}
+
+			}
+		} // Wenn es keine Änderungen im Text gibt, wird eine Meldung angezeigt:
+		else MessageBox::Show("No changes to save.");
 
 		}
 
-
+		   // Datei überschreiben
 	private: void saveFile(String^ filePath, String^ textToSave) {
-			try {
+		if (hasUnsavedChanges) { // wird  überprüft, ob es Änderungen im Text gibt
+			try {// Versuch, die aktuelle Datei zu überschreiben 
 				System::IO::File::WriteAllText(filePath, textToSave);
 				MessageBox::Show("Datei wurde überschrieben ");
+				// wenn der Datensatz erfolgreich ist, setzen Sie das Flag auf false, was bedeutet, dass es keine Änderungen für den Datensatz gibt
+				hasUnsavedChanges = false;	
 			}
 			catch (System::Exception^ ex) {
-				MessageBox::Show("Error while saving the file: " + ex->Message);
+				MessageBox::Show("Error while saving the file: " + ex->Message); // sonst Fehler
 			}
+			// Wenn es keine Änderungen im Text gibt, wird eine Meldung angezeigt:
+		} else MessageBox::Show("No changes to save.");
 		}
-
+	// Datei öffnen
 	private: String^ openFile() {
-
+			// ein geeignetes Dialogfeld erstellen  
 			OpenFileDialog^ openfileDialog = gcnew OpenFileDialog();
-			openfileDialog->Filter = " text files (*.txt*)|*.txt*|all files (*.*)|*.*";
-
+			openfileDialog->Filter = " text files (*.txt*)|*.txt*|all files (*.*)|*.*"; // Formatfilter
+			//wenn die Dialogbox auf OK geklickt wird
 			if (openfileDialog->ShowDialog() == System::Windows::Forms::DialogResult::OK) {
-				selectedFilePath = openfileDialog->FileName;
-				return openfileDialog->FileName;
+				//  setzen Sie das Flag auf false, was bedeutet, dass es keine Änderungen für den Datensatz gibt
+				hasUnsavedChanges = false;
+				selectedFilePath = openfileDialog->FileName; // weist den absoluten Pfad der gespeicherten Datei der Variablen
+				return openfileDialog->FileName;  // Rückgabe der Datei zur weiteren Aufzeichnung
 			}
 			else {
-				return nullptr;
+				return nullptr; // sonst null
 			}
 		}
-
-	private: void listenFile(String^ filePath) {
-
+		   // Datei lesen
+	private: void readFile(String^ filePath) {
+		// wenn die Datei existiert
 			if (filePath != nullptr) {
-				try {
-					System::IO::StreamReader^ reader = gcnew System::IO::StreamReader(filePath);
-					String^ fileContent = reader->ReadToEnd();
-					reader->Close();
+				try { // Versuch, Daten zu lesen
+					System::IO::StreamReader^ reader = gcnew System::IO::StreamReader(filePath); // Erstellung einer Leseklasse
+					String^ fileContent = reader->ReadToEnd();  // Ende-zu-Ende-Lesen
+					reader->Close(); // Leseverschluss
 
-					this->textBox->Text = fileContent;
+					this->textBox->Text = fileContent; // Zuweisung der gelesenen Daten zu unserem Textcontainer
 				}
 				catch (Exception^ ex) {
-					MessageBox::Show("Fehler beim Upload einer Datei: " + ex->Message);
+					MessageBox::Show("Fehler beim Upload einer Datei: " + ex->Message); // sonst Fehler
 				}
 			}
 		}
-
+		   // Formschluss
 	private: void formClosing() {
-		if (hasUnsavedChanges && this->textBox->Text->Length != 0) {
+		// wenn das Textfeld nicht leer ist und es ungespeicherte Daten gibt
+		if (hasUnsavedChanges && this->textBox->Text->Length != 0) { 
+			// Nachrichtenbox erstellen
 			System::Windows::Forms::DialogResult result = MessageBox::Show("vor dem Schließen zu speichern?", "Confirm", MessageBoxButtons::YesNoCancel, MessageBoxIcon::Question);
-			if (result == System::Windows::Forms::DialogResult::Yes) {
-				if (selectedFilePath != nullptr) {
-					saveFile(selectedFilePath, textBox->Text);
+			if (result == System::Windows::Forms::DialogResult::Yes) { // wenn OK gedrückt wird 
+				if (selectedFilePath != nullptr) { // wenn die Datei bereits erstellt wurde
+					saveFile(selectedFilePath, textBox->Text); // dann überschreiben die Datei
 				}
 				else {
-					saveNewFile();
+					saveNewFile(); // sonst speichern der neuen Datei
 				}
 			}
-			else if (result == System::Windows::Forms::DialogResult::Cancel) {
-				return; // ????????????? ???????? ?????
+			else if (result == System::Windows::Forms::DialogResult::Cancel) { // wenn Cancel gedrückt wird 
+				return; // Verhindern Sie das Schließen des Forms
 			}
 		}
 	}
+//--------------------------------Ende----Methoden-----------------------------------------------------------------
 
-
-		bool hasUnsavedChanges;
-		String^ selectedFilePath;
-
-
-
-#pragma endregion
+//----------------------------------------EVENTS------------------------------------------------------------------
+#pragma endregion 
+		   // Klick auf die Navigation "Datei"
 	private: System::Void data_menu_Click(System::Object^ sender, System::EventArgs^ e) {
-		bool isTextNoEmpty = this->textBox->Text->Length != 0;
+		// Je nachdem, ob das Textfeld leer ist oder nicht, werden die Buttons auf aktiv oder inaktiv gesetzt.
+		bool isTextNoEmpty = this->textBox->Text->Length != 0; 
 
 		this->save_data_menu->Enabled = isTextNoEmpty;
 		this->saveAs_data_menu->Enabled = isTextNoEmpty;
 
 	}
-	
+		   // Klick auf die Navigation "Datei->öffen"
 	private: System::Void open_data_menu_Click(System::Object^ sender, System::EventArgs^ e) {
-		String^ filePath = openFile();
-		listenFile(filePath);
+		String^ filePath = openFile();  // Datei-Öffnungsmethode
+		readFile(filePath); // Zuweisung des Inhalts einer geöffneten Datei an unser Textfeld
 	}
-
-private: System::Void allEdit_edit_menu_Click(System::Object^ sender, System::EventArgs^ e) {
-	
-	allEdit_edit_menu->Enabled = this->textBox->Text->Length != 0;
-		if(allEdit_edit_menu->Enabled) this->textBox->SelectAll();
-	
-}
+		   // Klick auf die Navigation "Datei->speichern"
 private: System::Void save_data_menu_Click(System::Object^ sender, System::EventArgs^ e) {
-	if (this->textBox->Text->Length != 0) {
-		if (selectedFilePath != nullptr) saveFile(selectedFilePath, textBox->Text);
-		else {
+	if (this->textBox->Text->Length != 0) { // wenn das Textfeld nicht leer ist
+		// wenn die Datei bereits erstellt wurde , Datei überschreiben
+		if (selectedFilePath != nullptr) saveFile(selectedFilePath, textBox->Text); 
+		else { // entsprechende Nachricht und speichern der neuen Datei
 			MessageBox::Show("Die Datei wurde noch nicht erstellt. File Erstellung");
-			saveNewFile();
+			saveNewFile(); 
 		} 
 	}
 }
-
+	   // Klick auf die Navigation "Datei->speichern unter"
 private: System::Void saveAs_data_menu_Click(System::Object^ sender, System::EventArgs^ e) {
-	if (this->textBox->Text->Length != 0) saveNewFile();
-	else saveFile(selectedFilePath, textBox->Text);
+	if (this->textBox->Text->Length != 0) saveNewFile();  // wenn das Textfeld nicht leer ist, speichern der neuen Datei
+	else saveFile(selectedFilePath, textBox->Text); // sonst Dateiüberschreibung
 }
-
+	   // Klick auf die Navigation "Datei->beenden"
 private: System::Void exit_data_menu_Click(System::Object^ sender, System::EventArgs^ e) {
-	Application::Exit();
+	Application::Exit();  // Das Schließen des Forms löst das Event "FormClosing" aus.
 }
 
-
+	   // Klick auf die Navigation "Bearbeiten"
 private: System::Void edit_menu_Click(System::Object^ sender, System::EventArgs^ e) {
-
+	// Je nachdem, ob das Textfeld leer ist oder nicht, werden die Buttons auf aktiv oder inaktiv gesetzt.
 	bool textSelected = this->textBox->SelectionLength > 0;
-	bool allTextSelected = this->textBox->SelectionLength == this->textBox->Text->Length;
-
 	this->copy_edit_menu->Enabled = textSelected;
 	this->cut_edit_menu->Enabled = textSelected;
+	//Je nachdem, ob der Text hervorgehoben ist oder nicht, wird Button "Alles markieren" auf aktiv oder inaktiv gesetzt.
+	bool allTextSelected = this->textBox->SelectionLength == this->textBox->Text->Length;
 	this->allEdit_edit_menu->Enabled = !allTextSelected;
 
 }
+	   // Klick auf die Navigation "Bearbeiten->Alles markieren"
+private: System::Void allEdit_edit_menu_Click(System::Object^ sender, System::EventArgs^ e) {
+	// Je nachdem, ob das Textfeld leer ist oder nicht, wird Button "Alles markieren" auf aktiv oder inaktiv gesetzt.
+	allEdit_edit_menu->Enabled = this->textBox->Text->Length != 0;
+	if (allEdit_edit_menu->Enabled) this->textBox->SelectAll(); // wenn aktiv, markiert den gesamten Text
 
+}
+
+	   // Klick auf die Navigation "Bearbeiten->kopieren"
 private: System::Void copy_edit_menu_Click(System::Object^ sender, System::EventArgs^ e) {
-	if (this->textBox->SelectionLength > 0) {
-		this->textBox->Copy();
-		this->add_edit_menu->Enabled = true;
+	if (this->textBox->SelectionLength > 0) { //  wenn etwas hervorgehoben ist
+		this->textBox->Copy();	 // kopieren
+		this->add_edit_menu->Enabled = true; // Button "Einfügen" aktiv
 	}
 }
-
+	   // Klick auf die Navigation "Bearbeiten->ausschneiden"
 private: System::Void cut_edit_menu_Click(System::Object^ sender, System::EventArgs^ e) {
-	if (this->textBox->SelectionLength > 0) {
-		this->textBox->Cut();
-		this->add_edit_menu->Enabled = true;
+	if (this->textBox->SelectionLength > 0) { // das Textfeld niht leer ist
+		this->textBox->Cut(); // Text ausschneiden
+		this->add_edit_menu->Enabled = true; //Button  "Einfügen" aktiv
 	}
 }
-
+	   // Klick auf die Navigation "Bearbeiten->Einfügen"
 private: System::Void add_edit_menu_Click(System::Object^ sender, System::EventArgs^ e) {
-	if (Clipboard::ContainsText()) this->textBox->Paste();
+	if (Clipboard::ContainsText()) this->textBox->Paste(); //  Wenn Daten im Cache gespeichert sind, dann einfügen.
 }
-
+	   // Ereignisse beim Ändern von Text in dem Textfeld
 private: System::Void textBox_TextChanged(System::Object^ sender, System::EventArgs^ e) {
-	bool textNotEmpty = this->textBox->Text->Length > 0;
+	//Je nachdem, ob das Feld leer ist oder nicht, ändert sich das Flagg für 
+	// die Überprüfung der Daten und die Button->Enabled "Kopieren" ändert sich
+	bool textNotEmpty = this->textBox->Text->Length > 0; 
 	this->copy_edit_menu->Enabled = textNotEmpty;
-	hasUnsavedChanges = textNotEmpty;
+	hasUnsavedChanges = textNotEmpty; 
 
 }
 
-
+	   // Ereignis zum Schließen des Forms
 private: System::Void Form1_FormClosing(System::Object^ sender, System::Windows::Forms::FormClosingEventArgs^ e) {
-	formClosing();
+	formClosing(); // die Methode zum Speichern oder Überschreiben der Datei verwendet wird
 }
-
+	   // Klick auf die Navigation "Extras->Suchen"
 private: System::Void search_search_menu_Click(System::Object^ sender, System::EventArgs^ e) {
+	// eine Instanz der  Klasse des zweiten Forms erstellen und ihr ein eigenes Textfeld als Argument übergeben
 	Form2^ second_Form = gcnew Form2(this->textBox);
-	second_Form->Show();
+	second_Form->Show();  //zweites Form öffnen
 }
-
+	   // Klick auf die Navigation "?"
 private: System::Void info_info_menu_Click(System::Object^ sender, System::EventArgs^ e) {
-	MessageBox::Show("Version 2.0");
+	MessageBox::Show("Version 2.0"); // Version anzeigen
 }
 };
 }

@@ -18,7 +18,7 @@ namespace my_Editor {
 	public ref class Form2 : public System::Windows::Forms::Form
 	{
 	public:
-		RichTextBox^ my_textbox;
+		RichTextBox^ my_textbox; // Initialisierung einer Textfeldvariable
 		Form2(void)
 		{
 			InitializeComponent();
@@ -27,9 +27,9 @@ namespace my_Editor {
 			//
 		}
 
-		Form2(RichTextBox^ textbox)
+		Form2(RichTextBox^ textbox)  
 		{
-			my_textbox = textbox;
+			my_textbox = textbox; 	// Anweisung, um ein Textfeld aus dem ersten Form zu erhalten
 			InitializeComponent();
 			//
 			//TODO: Add the constructor code here
@@ -125,9 +125,8 @@ namespace my_Editor {
 
 		}
 
-		/*bool ignoreCase;*/ //Initialisierung des Textregister-Flags
-
-
+		// Methode zur Suche nach Übereinstimmungen bei Groß- und Kleinschreibung
+		// Parameter: übergebenes Textfeld, Text aus dem Eingabefeld für Übereinstimmungszeichen, Flagg für Groß-/Kleinschreibung
 		void HighlightMatches(RichTextBox^ textBox, String^ searchText, bool ignoreCase)
 		{
 			// Nullstellung der Farbbezeichnung der gesuchten Zeichen
@@ -135,25 +134,25 @@ namespace my_Editor {
 			textBox->SelectionLength = textBox->Text->Length;
 			textBox->SelectionBackColor = textBox->BackColor;
 
-			String^ text;
-			if(!ignoreCase) text = textBox->Text;
+			String^ text; 
+			if(!ignoreCase) text = textBox->Text; // Bedingungen für Groß- und Kleinschreibung
 			else {
 				text = textBox->Text->ToLower(); // Quelltext in Kleinbuchstaben umwandeln
 				searchText = searchText->ToLower(); // Den gesuchten Text in Kleinbuchstaben umwandeln
 			}
-			int startIndex = 0;
+			int startIndex = 0; // Suchindex zurücksetzen 
 			bool matchesFound = false; // Flagge für die Erkennung von Übereinstimmungen
 
-			while (startIndex < text->Length)
+			while (startIndex < text->Length) // Schleife über die gesamte Länge des Textes im Textfeld von Form 1
 			{
-				startIndex = text->IndexOf(searchText, startIndex);
+				startIndex = text->IndexOf(searchText, startIndex); // gibt den Index des ersten Vorkommens zurück
 
-				if (startIndex == -1) break;
+				if (startIndex == -1) break;  // Wenn searchText nicht gefunden wird, gibt die Methode - 1 zurück.
 			
-				textBox->Select(startIndex, searchText->Length);
+				textBox->Select(startIndex, searchText->Length);  // gelbe Hervorhebung von Übereinstimmungen
 				textBox->SelectionBackColor = System::Drawing::Color::Yellow;
 
-				startIndex += searchText->Length;
+				startIndex += searchText->Length;  // wird auf die Position gesetzt, die unmittelbar auf das gefundene Element folgt
 				matchesFound = true;  // Flagge setzen, wenn mindestens eine Übereinstimmung gefunden wird
 			}
 
@@ -163,15 +162,17 @@ namespace my_Editor {
 		
 	
 #pragma endregion
+		// Klick auf Button "Suchen" des Form2
 private: System::Void search_btn_Click(System::Object^ sender, System::EventArgs^ e) {
+	// wenn eines der Felder leer ist 
     if (my_textbox->Text->Length == 0 || search_input->Text->Length == 0) {
-        MessageBox::Show("Das Textfeld ist leer!");
-        search_input->Text = "";
+        MessageBox::Show("Das Textfeld ist leer!"); 
+        search_input->Text = ""; // Löschen des Suchfeldes
         return;
     }
-
+	// sonst Flagge für Groß- oder Kleinschreibung je nach Checkbox
     bool ignoreCase = !checkBox->Checked;
-    HighlightMatches(my_textbox, search_input->Text, ignoreCase);
+    HighlightMatches(my_textbox, search_input->Text, ignoreCase); // Aufruf der Suchfunktion
 }
 };
 }
