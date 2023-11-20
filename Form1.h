@@ -323,7 +323,7 @@ namespace my_Editor {
 		}
 	}
 
-	private: void formClosing() {																// Formschluss	
+	private: void formClosing(FormClosingEventArgs^ e) {																// Formschluss	
 		// wenn das Textfeld nicht leer ist und es ungespeicherte Daten gibt
 		if (hasUnsavedChanges && this->textBox->Text->Length != 0) {
 			System::Windows::Forms::DialogResult result = MessageBox::Show("vor dem Schließen zu speichern?",  // Nachrichtenbox erstellen
@@ -337,7 +337,7 @@ namespace my_Editor {
 				}
 			}
 			else if (result == System::Windows::Forms::DialogResult::Cancel) {					// wenn Cancel gedrückt wird 
-				return;																			// Verhindern Sie das Schließen des Forms
+				e->Cancel = true;																			// Verhindern Sie das Schließen des Forms
 			}
 		}
 	}
@@ -425,7 +425,7 @@ private: System::Void textBox_TextChanged(System::Object^ sender, System::EventA
 
 
 private: System::Void Form1_FormClosing(System::Object^ sender, System::Windows::Forms::FormClosingEventArgs^ e) {		 // Ereignis zum Schließen des Forms
-	formClosing();																	// die Methode zum Speichern oder Überschreiben der Datei verwendet wird
+	formClosing(e);																	// die Methode zum Speichern oder Überschreiben der Datei verwendet wird
 }
 
 private: System::Void search_search_menu_Click(System::Object^ sender, System::EventArgs^ e) {		// Klick auf die Navigation "Extras->Suchen"
